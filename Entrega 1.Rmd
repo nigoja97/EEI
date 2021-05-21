@@ -1,0 +1,150 @@
+---
+title: "Entrega 1"
+author: "Nicolás González J & Joan Galeano"
+date: "19/04/2021"
+output: pdf_document
+---
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(haven)
+library(readxl)
+library(knitr)
+library(ggpubr)
+rm(list = ls())
+setwd("C:/Users/NIGOJ/Desktop/Nico/Cosas de la U/Estudios Economicos Internacionales/Trabajo Final")
+```
+
+## Introducción
+
+El propósito de este trabajo tiene como objetivo identificar el efecto parcial de las tasas de interés externas sobre la tasa de cambio representativa de mercado. Desde 1991, Colombia logró expandir su economía al comercio internacional, realizando un proceso de adhesión en los mercados mundiales. Debido a lo anterior, los controles restrictivos sobre los flujos de comercio y los flujos de capital se han flexibilizado para favorecer a las contrapartes involucradas en los métodos de intercambio, sin embargo, los países envueltos en estos términos serían vulnerables ante cualquier choque exógeno propiciado bajo cualquier escenario de comercio. De esta manera, cambios en el comportamiento económico de socios comerciales podrían afectar la tendencia de los agregados macroeconómicos al interior de la nación colombiana.
+
+Debido al rol que juega el tipo de cambio, a los lazos comerciales que establece Colombia con el resto del mundo y a la relación que abarcan las tasas de interés externas e internas, el objetivo de este trabajo de investigación será cuantificar el efecto parcial de las tasas de interés externas sobre la tasas de cambio, en un periodo de tiempo que comprende desde 2010, hasta 2020.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+tasas <- read_excel("C:/Users/NIGOJ/Desktop/Nico/Cosas de la U/Estudios Economicos Internacionales/Trabajo Final/Datos.xlsx")
+tasas <- tasas[-1,]
+
+tasas <- tasas %>% 
+  rename(Fecha = `Datos- Periodicidad mensual (2010-2021)`,
+         Promedio_Mensual = ...2,
+         Prime = ...3,
+         Libor = ...4) %>% 
+  relocate(Fecha, Promedio_Mensual, Prime, Libor) %>% 
+  mutate(Fecha = as_date(as.double(Fecha), origin = "1899-12-30"),
+         Promedio_Mensual = as.double(Promedio_Mensual),
+         Prime = as.double(Prime),
+         Libor = as.double(Libor))
+
+
+
+```
+
+## Marco Teórico
+
+### Tasa de cambio
+
+La tasa de cambio (E) es el precio de una unidad de moneda extranjera (F) expresada en unidades de moneda local (H). Por otro lado, en Colombia, la tasa resultante del promedio ponderado según el monto entre el precio de compra y el precio de venta de dólares estadounidenses (USD) en pesos colombianos, (COP) se conoce como tasa representativa del mercado o TRM. La TRM es calculada por la Superintendencia Financiera de Colombia a partir de los datos de todas las operaciones en el mercado de divisas del último día hábil.
+
+Para el caso colombiano, el comportamiento y el valor de la tasa de cambio está dado por la oferta y demanda de moneda extranjera en el mercado local con la posibilidad de intervención estatal, es decir, un regimen cambiario de flotacion sucia. Ante un choque en los precios extranjeros y locales se puede esperar una reacción de la tasa de cambio gracias a las variaciones de oferta y demanda por dólares. Por ejemplo, un aumento de los precios del petroleo provoca un exceso de dolares en la economía y una apreciación del peso colombiano en relación al dolar.
+
+```{r, echo=FALSE}
+cambio <- ggplot() + 
+  geom_line(data = tasas, aes(x = Fecha, y = Promedio_Mensual), color = "black")+   labs(x = 'Fecha', y = 'Promedio Mensual (COP)',
+       caption = 'Fuente: Banco de la Republica. Gráficos propios')
+
+cambio
+```
+
+### Tasas de interés externas
+
+La tasa de interés, es, valga la redundancia, la tasa de retorno de un valor inicial en un periodo de tiempo determinado. Las firmas locales y extranjeras suelen apalancar sus gastos a través de crédito directamente en los bancos, o en forma de bonos o acciones preferentes que pueden adquirir los agentes en el mercado.
+
+Cuando las tasas de interés nominales cambian, el costo de fondeo de la firma también lo hara de forma proporcional.Es decir, que si la tasa de interés aumenta, los intereses que pagará la firma si financia una inversion o apalanca un gasto serán mucho mayores, y viceversa.
+
+Si se asume que el país H es una economía abierta las tasas de interés externas pueden afectar la economía local. Por ejemplo, ante un comportamiento bajista de la tasa de interés en el país F, producirá una migración de capitales a paises con una tasa de interés mayor, en este caso, el país H. Y en consecuencia, una apreciación de la moneda de H con respecto a la de F, pues de esta última se incrementó la oferta en el mercado local.
+
+#### Prime:
+
+La tasa de interés Prime o Prime Rate como también es conocida en la literatura es la tasa a la que los 25 bancos más grandes (en términos de activos ) de Estados Unidos le prestan dinero a sus mejores clientes. La tasa Prime solo cambiará si al menos 13 de esos 25 bancos cambian su tasa Prime. En pocas palabras, es la tasa más baja a la que podría pedir dinero prestado una persona, dependiendo de sus balances, a un banco de Estados Unidos.
+
+#### Libor:
+
+Una tasa interbancaria ofrecida o LIBOR es aquella tasa a la que un banco le pide dinero a otro dentro del mercado. En particular, cuando se utiliza el término LIBOR se hace referencia a la tasa interbancaria ofrecida por los bancos de Londres. Esta tasa es utilizada para determinar el precio de algunos derivados y demás instrumentos financieros.
+
+Actualmente, la tasa LIBOR es calculada para 5 divisas (USD, GBP, EUR, CHF y JPY) y 7 frecuencias (Diario, Semanal, Mensual, Bimestral, Trimestral, Semestral y Anual). En total se calculan 35 tasas diferentes aplicables cada día hábil en Londres.
+
+```{r, echo=FALSE}
+Prime <- ggplot() + 
+  geom_line(data = tasas, aes(x = Fecha, y = Prime), color = "red") +
+   labs(x = 'Fecha', y = 'Prime',
+       caption = 'Fuente: Banco de la Republica. Gráficos propios')+theme_light()
+
+Libor <- ggplot() + 
+  geom_line(data = tasas, aes(x = Fecha, y = Libor), color = "red") +
+  labs(x = 'Fecha', y = 'Libor',
+       caption = 'Fuente: Banco de la Republica. Gráficos propios')+theme_light()
+
+ggarrange(Prime, Libor + rremove("x.text"), 
+          labels = c("A", "B"),
+          ncol = 2)
+```
+
+### M1 de EE. UU.
+
+```{r, echo=FALSE, warning=FALSE}
+M1 <- read.csv("C:/Users/NIGOJ/Desktop/Nico/Cosas de la U/Estudios Economicos Internacionales/Trabajo Final/M1.csv")
+
+M1 <- M1 %>% 
+  mutate(Fecha=ydm(DATE)) %>% 
+  relocate(Fecha)
+M1 <- M1[,-2]
+M1 <- as.tibble(M1)
+
+plot(M1, type = "l")
+
+M1 <- ggplot() + 
+  geom_line(data = M1, aes(x = Fecha, y = M1SL), color = "red") +
+   labs(x = 'Fecha', y = 'Prime',
+       caption = 'FRED. Gráficos propios')
+```
+
+### M3 de EE. UU.
+
+```{r, echo=FALSE}
+M3 <- read.csv("C:/Users/NIGOJ/Desktop/Nico/Cosas de la U/Estudios Economicos Internacionales/Trabajo Final/M3.csv")
+
+M3 <- M3 %>% 
+  mutate(Fecha=ydm(DATE)) %>% 
+  relocate(Fecha)
+M3 <- M3[,-2]
+M3 <- as.tibble(M3)
+
+plot(M3, type = "l")
+```
+
+### Tasa de bonos de la reserva federal (FED)
+
+```{r, echo=FALSE}
+Bonos <- read.csv("C:/Users/NIGOJ/Desktop/Nico/Cosas de la U/Estudios Economicos Internacionales/Trabajo Final/Fondo.csv")
+
+Bonos <- Bonos %>% 
+  mutate(Fecha=ydm(DATE)) %>% 
+  relocate(Fecha)
+Bonos <- Bonos[,-2]
+Bonos <- as.tibble(Bonos)
+
+plot(Bonos, type = "l")
+```
+
+A partir de las gráficas se puede demostrar que el comportamiento de la demanda por dinero en relación a las tasas de interés es inverso.
+
+
+## Referencias
+
+1.  Feenstra, R. C. (2014). International Economics (Tercera ed.). New York: Worth Publishers. Recuperado el 10 de 04 de 2021
+
+2.  Correa, P. (1992). Paridad entre la tasa de interés real interna y externa: notas sobre el caso colombiano.
+
+3.  Echavarría, J. J., & Gaviria, A. (1992). Los determinantes de la tasa de cambio y la coyuntura actual en Colombia.
